@@ -1,4 +1,4 @@
-const { Client, RemoteAuth , MessageMedia, LocalAuth } = require('whatsapp-web.js');
+const { Client, RemoteAuth , MessageMedia } = require('whatsapp-web.js');
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const socketIO = require('socket.io');
