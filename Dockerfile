@@ -1,10 +1,11 @@
 # Use a imagem do Ubuntu 20.04 como base
-FROM ubuntu 
+FROM ubuntu
 
-# Instalação do Node.js
+# Atualiza o sistema e instala as dependências necessárias
 RUN apt-get update && apt-get install -y \
     nodejs \
     npm \
+    libnss3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Instalação do PM2 globalmente
