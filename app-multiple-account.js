@@ -126,7 +126,6 @@ const createSession = function (id, description) {
 
   });
 
-  client.initialize();
 
   client.on('qr', (qr) => {
     console.log('QR RECEIVED', qr);
@@ -291,6 +290,10 @@ app.post('/send-message', async (req, res) => {
     });
   });
 });
+
+
+
+client.initialize();
 
 server.listen(port, function () {
   console.log('App running on *: ' + port);
