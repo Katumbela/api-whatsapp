@@ -165,7 +165,6 @@ io.on('connection', function(socket) {
   });
 });
 
-});
 
 const checkRegisteredNumber = async function(number) {
   const isRegistered = await client.isRegisteredUser(number);
@@ -354,6 +353,7 @@ app.post('/clear-message', [
   })
 });
 
+});
 server.listen(port, function() {
   console.log('Api Online na porta: ' + port);
 });
