@@ -3,11 +3,11 @@ const express = require('express');
 const socketIO = require('socket.io');
 const qrcode = require('qrcode');
 const http = require('http');
-const mongoose = require('mongoose');
+const fs = require('fs');
 const { phoneNumberFormatter } = require('./helpers/formatter');
 const fileUpload = require('express-fileupload');
 const axios = require('axios');
-require('dotenv').config();
+const port = process.env.PORT || 8000;
 
 const app = express();
 const server = http.createServer(app);
@@ -18,6 +18,14 @@ app.use(express.urlencoded({
   extended: true
 }));
 
+/**
+ * BASED ON MANY QUESTIONS
+ * Actually ready mentioned on the tutorials
+ * 
+ * The two middlewares above only handle for data json & urlencode (x-www-form-urlencoded)
+ * So, we need to add extra middleware to handle form-data
+ * Here we can use express-fileupload
+ */
 app.use(fileUpload({
   debug: false
 }));
@@ -28,40 +36,36 @@ app.get('/', (req, res) => {
   });
 });
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Error connecting to MongoDB:', err));
+const sessions = [];
+const SESSIONS_FILE = './whatsapp-sessions.json';
 
-// Define o esquema do modelo de sessão
-const sessionSchema = new mongoose.Schema({
-  id: String,
-  description: String,
-  ready: Boolean,
-  // Outros campos necessários
-});
-
-// Cria o modelo de sessão
-const Session = mongoose.model('Session', sessionSchema);
-
-// Função para criar uma nova sessão e salvá-la no MongoDB
-const createSession = async function (id, description) {
-  console.log('Creating session: ' + id);
-  
-  const session = new Session({
-    id: id,
-    description: description,
-    ready: false,
-    // Outros campos necessários
-  });
-
-  try {
-    await session.save();
-    console.log('Session created and saved to MongoDB');
-  } catch (err) {
-    console.error('Error saving session to MongoDB:', err);
+const createSessionsFileIfNotExists = function () {
+  if (!fs.existsSync(SESSIONS_FILE)) {
+    try {
+      fs.writeFileSync(SESSIONS_FILE, JSON.stringify([]));
+      console.log('Sessions file created successfully.');
+    } catch (err) {
+      console.log('Failed to create sessions file: ', err);
+    }
   }
+}
 
+createSessionsFileIfNotExists();
+
+const setSessionsFile = function (sessions) {
+  fs.writeFile(SESSIONS_FILE, JSON.stringify(sessions), function (err) {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+
+const getSessionsFile = function () {
+  return JSON.parse(fs.readFileSync(SESSIONS_FILE));
+}
+
+const createSession = function (id, description) {
+  console.log('Creating session: ' + id);
   const client = new Client({
     restartOnAuthFail: true,
     puppeteer: {
@@ -154,10 +158,10 @@ const createSession = async function (id, description) {
     io.emit('ready', { id: id });
     io.emit('message', { id: id, text: 'Whatsapp is ready!' });
 
-    const savedSessions = await getSessionsFromMongoDB();
+    const savedSessions = getSessionsFile();
     const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
     savedSessions[sessionIndex].ready = true;
-    await updateSessionInMongoDB(id, { ready: true });
+    setSessionsFile(savedSessions);
  
     client.getChats().then(chats => {
       //const groups = chats.filter(chat => chat.isGroup);
@@ -192,10 +196,11 @@ const createSession = async function (id, description) {
     client.initialize();
 
     // Menghapus pada file sessions
-    const savedSessions = await getSessionsFromMongoDB();
+    const savedSessions = getSessionsFile();
     const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
     savedSessions.splice(sessionIndex, 1);
-    await Session.deleteOne({ id: id });
+    setSessionsFile(savedSessions);
+
     io.emit('remove-session', id);
   });
 
@@ -207,7 +212,7 @@ const createSession = async function (id, description) {
   });
 
   // Menambahkan session ke file
-  const savedSessions = await getSessionsFromMongoDB();
+  const savedSessions = getSessionsFile();
   const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
 
   if (sessionIndex == -1) {
@@ -217,23 +222,25 @@ const createSession = async function (id, description) {
       description: description,
       ready: false,
     });
-    await Session.create({
-      id: id,
-      description: description,
-      ready: false,
-    });
+    setSessionsFile(savedSessions);
   }
 
   
-  client.initialize();
+client.initialize();
 }
 
-// Função de inicialização
-const init = async function (socket) {
-  const savedSessions = await getSessionsFromMongoDB();
+const init = function (socket) {
+  const savedSessions = getSessionsFile();
 
   if (savedSessions.length > 0) {
     if (socket) {
+      /**
+       * At the first time of running (e.g. restarting the server), our client is not ready yet!
+       * It will need several time to authenticating.
+       * 
+       * So to make people not confused for the 'ready' status
+       * We need to make it as FALSE for this condition
+       */
       savedSessions.forEach((e, i, arr) => {
         arr[i].ready = false;
       });
@@ -247,7 +254,7 @@ const init = async function (socket) {
   }
 }
 
-// Restante do seu código...
+init();
 
 // Socket IO
 io.on('connection', function (socket) {
@@ -306,8 +313,11 @@ app.post('/send-message', async (req, res) => {
   });
 });
 
-server.listen(process.env.PORT || 8000, function () {
-  console.log('App running on *: ' + (process.env.PORT || 8000));
+
+
+
+server.listen(port, function () {
+  console.log('App running on *: ' + port);
 });
 
-server.keepAliveTimeout = 6000000;
+server.keepAliveTimeout = 600000;
