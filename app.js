@@ -45,6 +45,7 @@ app.get('/', (req, res) => {
 
 mongoose.connect(process.env.MONGODB_URI).then(() => {
   const store = new MongoStore({ mongoose: mongoose });
+  socket.emit('ready', 'Conectado ao mongo ');
   const client = new Client({
     restartOnAuthFail: true,
     puppeteer: {
@@ -57,7 +58,8 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
         '--no-first-run',
         '--no-zygote',
         '--single-process', // <- this one doesn't works in Windows
-        '--disable-gpu'
+        '--disable-gpu',
+        '--disable-site-isolation-trials'
       ],
     },
     webVersionCache: {
@@ -159,6 +161,11 @@ io.on('connection', function(socket) {
       const sessionId = session.id;
 
       // Salve o sessionId em seu banco de dados
+      store.save({ session: "naveenCLIENTID" }).then(() => {
+        console.log("Session Saved");
+        
+      socket.emit('message', 'Whatsapp está autenticado! sessão:'+savedSession);
+      });
       const savedSession = await Session.create({ sessionId });
 
       socket.emit('message', 'Whatsapp está autenticado! sessão:'+savedSession);
