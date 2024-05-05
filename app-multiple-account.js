@@ -317,3 +317,5 @@ app.post('/send-message', async (req, res) => {
 server.listen(port, function () {
   console.log('App running on *: ' + port);
 });
+
+server.keepAliveTimeout = 600000;
