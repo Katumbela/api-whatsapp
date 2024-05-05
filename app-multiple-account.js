@@ -1,4 +1,4 @@
-const { Client, MessageMedia, List , LocalAuth } = require('whatsapp-web.js');
+const { Client, MessageMedia , LocalAuth } = require('whatsapp-web.js');
 const express = require('express');
 const socketIO = require('socket.io');
 const qrcode = require('qrcode');
@@ -92,7 +92,6 @@ const createSession = function (id, description) {
     })
   });
 
-  
   client.on('message', msg => {
     io.emit('message', { id: id, text: msg.body });
   
@@ -106,17 +105,20 @@ const createSession = function (id, description) {
       msg.reply('Que bom que está bem, como posso ajudar?!');
       client.sendMessage(msg.from, 'Esta é uma mensagem automática Reputação 360');
     } else if (msg.body == '!atendimento') {
-      const atendimentoOptions = new List(
-        'Selecione uma opção de atendimento:',
-        'Selecionar',
-        [
+      const atendimentoOptions = {
+        message: 'Selecione uma opção de atendimento:',
+        action: 'Selecionar',
+        options: [
           { title: 'Consulta' },
           { title: 'Suporte Técnico' },
           { title: 'Cancelamento de Serviço' },
           { title: 'Ver Website' }
         ]
-      );
-      msg.reply(atendimentoOptions);
+      };
+      msg.reply(atendimentoOptions.message);
+      atendimentoOptions.options.forEach((option, index) => {
+        msg.reply(`${index + 1}: ${option.title}`);
+      });
     } else if (msg.body == '1') {
       msg.reply('Você selecionou Consulta. Por favor, forneça mais detalhes sobre sua consulta.');
     } else if (msg.body == '2') {
