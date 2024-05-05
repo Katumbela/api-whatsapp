@@ -68,7 +68,6 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
   });
 
   client.initialize();
-});
  
 client.on('message', msg => {
   if (msg.body == '!ping') {
@@ -166,6 +165,7 @@ io.on('connection', function(socket) {
   });
 });
 
+});
 
 const checkRegisteredNumber = async function(number) {
   const isRegistered = await client.isRegisteredUser(number);
