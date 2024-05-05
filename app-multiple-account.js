@@ -92,19 +92,6 @@ const createSession = function(id, description) {
     })
   });
 
-  client.getChats().then(chats => {
-    //const groups = chats.filter(chat => chat.isGroup);
-
-      let replyMsg = '*YOUR GROUPS*\n\n';
-      chats.forEach((group, i) => {
-        replyMsg += `ID: ${group.id}\nName: ${group.name}\n\n`;
-      });
-      replyMsg += '_You can use the group id to send a message to the group._'
-      msg.reply(replyMsg);
-      
-      io.emit('chats', { id: id, text: replyMsg});
-    
-  });
 
 client.on('message', msg => {
   
@@ -149,7 +136,7 @@ client.on('message', msg => {
     });
   });
 
-  client.on('ready', () => {
+  client.on('ready', async () => {
     io.emit('ready', { id: id });
     io.emit('message', { id: id, text: 'Whatsapp is ready!' });
 
@@ -157,6 +144,12 @@ client.on('message', msg => {
     const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
     savedSessions[sessionIndex].ready = true;
     setSessionsFile(savedSessions);
+ 
+    var chats = await client.getChats();
+    await new Promise(resolve => setTimeout(resolve, 20000));
+    var messages = await chats[5].fetchMessages({limit: 100});
+
+    io.emit('chats', { id: id, text: messages });
   });
 
   client.on('authenticated', () => {
