@@ -186,7 +186,7 @@ const createSession = async function (id, description) {
     io.emit('message', { id: id, text: 'Auth failure, restarting...' });
   });
 
-  client.on('disconnected', (reason) => {
+  client.on('disconnected', async (reason) => {
     io.emit('message', { id: id, text: 'Whatsapp is disconnected! because:' + reason });
     client.destroy();
     client.initialize();
