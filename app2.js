@@ -1,4 +1,4 @@
-const { Client, RemoteAuth , MessageMedia } = require('whatsapp-web.js');
+const { Client, RemoteAuth , MessageMedia, LocalAuth } = require('whatsapp-web.js');
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const socketIO = require('socket.io');
@@ -17,6 +17,9 @@ const port = process.env.PORT || 8000;
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+const Session = mongoose.model('Session', {
+  sessionId: String,
+});
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -42,6 +45,7 @@ app.get('/', (req, res) => {
 
 mongoose.connect(process.env.MONGODB_URI).then(() => {
   const store = new MongoStore({ mongoose: mongoose });
+  socket.emit('ready', 'Conectado ao mongo ');
   const client = new Client({
     restartOnAuthFail: true,
     puppeteer: {
@@ -54,7 +58,8 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
         '--no-first-run',
         '--no-zygote',
         '--single-process', // <- this one doesn't works in Windows
-        '--disable-gpu'
+        '--disable-gpu',
+        '--disable-site-isolation-trials'
       ],
     },
     webVersionCache: {
@@ -130,6 +135,27 @@ client.on('message', msg => {
   //   });
   // }
 });
+
+
+
+// Rota para conectar e obter QR code
+app.post('/connect', async (req, res) => {
+    const sessionName = req.body.sessionName;
+    try {
+      // Envia o QR code para autenticação
+      client.on('qr', async qr => {
+        const qrCodeUrl = await qrcode.toDataURL(qr);
+        res.send({ qrCodeUrl: qrCodeUrl });
+      });
+  
+      // Conecta com a sessão especificada
+      await client.initialize(sessionName);
+    } catch (error) {
+      console.error('Erro ao conectar:', error);
+      res.status(500).json({ error: 'Erro ao conectar' });
+    }
+  });
+  
  
 // Socket IO
 io.on('connection', function(socket) {
@@ -139,7 +165,7 @@ io.on('connection', function(socket) {
     console.log('RECEBENDO QRCODE', qr);
     qrcode.toDataURL(qr, (err, url) => {
       socket.emit('qr', url);
-      socket.emit('message', 'QRCODE RECEBIDO, SCANEIE PARA AUTENTICAR!');
+      socket.emit('message', 'QRCODE RECEBIDO, SCANEIE PARA AUTENTICAR! ');
     });
   });
 
@@ -148,10 +174,37 @@ io.on('connection', function(socket) {
     socket.emit('message', 'Whatsapp Conectado!');
   });
 
-  client.on('authenticated', () => {
+  client.on('authenticated', async () => {
     socket.emit('authenticated', 'Whatsapp está autenticado!');
-    socket.emit('message', 'Whatsapp está autenticado!');
     console.log('AUTHENTICATED');
+    try {
+      // Extraia o sessionId da sessão
+      const sessionId = session.id;
+
+      // Salve o sessionId em seu banco de dados
+      store.save({ session: "naveenCLIENTID" }).then(() => {
+        console.log("Session Saved");
+        
+      socket.emit('message', 'Whatsapp está autenticado! sessão:'+savedSession);
+      });
+      const savedSession = await Session.create({ sessionId });
+
+      socket.emit('message', 'Whatsapp está autenticado! sessão:'+savedSession);
+      console.log('Conta conectada e sessionId salvo:', savedSession);
+
+      // Responda com sucesso
+      
+      /*res.status(200).json({
+        status: true,
+        message: 'Conta conectada com sucesso e sessionId salvo'
+      });*/
+    } catch (error) {
+      console.error('Erro ao salvar sessionId:', error);
+      res.status(500).json({
+        status: false,
+        message: 'Erro ao salvar sessionId'
+      });
+    }
   });
 
   client.on('auth_failure', function(session) {

@@ -153,7 +153,7 @@ io.on('connection', function(socket) {
     socket.emit('message', 'Whatsapp Conectado!');
   });
 
-  client.on('authenticated', async (session) => {
+  client.on('authenticated', async () => {
     socket.emit('authenticated', 'Whatsapp está autenticado!');
     console.log('AUTHENTICATED');
     try {
@@ -172,10 +172,11 @@ io.on('connection', function(socket) {
       console.log('Conta conectada e sessionId salvo:', savedSession);
 
       // Responda com sucesso
-      res.status(200).json({
+      
+      /*res.status(200).json({
         status: true,
         message: 'Conta conectada com sucesso e sessionId salvo'
-      });
+      });*/
     } catch (error) {
       console.error('Erro ao salvar sessionId:', error);
       res.status(500).json({
