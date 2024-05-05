@@ -2,9 +2,9 @@
   "name": "whatsapp-api",
   "version": "1.0.0",
   "description": "Whatsapp api Web",
-  "main": "app.js",
+  "main": "app-multiple-account.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node app-multiple-account.js",
     "start:dev": "nodemon app-multiple-account.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
