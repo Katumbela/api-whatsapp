@@ -21,6 +21,7 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.2.0",
     "express-validator": "^6.9.2",
+    "forever": "^4.0.3",
     "http": "0.0.1-security",
     "mime-types": "^2.1.32",
     "mongoose": "^8.3.3",
