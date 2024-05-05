@@ -228,24 +228,49 @@ const createSession = async function (id, description) {
   client.initialize();
 }
 
-// Função de inicialização
-const init = async function (socket) {
-  const savedSessions = await getSessionsFromMongoDB();
 
-  if (savedSessions.length > 0) {
-    if (socket) {
-      savedSessions.forEach((e, i, arr) => {
-        arr[i].ready = false;
-      });
-
-      socket.emit('init', savedSessions);
-    } else {
-      savedSessions.forEach(sess => {
-        createSession(sess.id, sess.description);
-      });
-    }
+const getSessionsFromMongoDB = async () => {
+  try {
+    const sessions = await Session.find({});
+    return sessions;
+  } catch (error) {
+    console.error('Error fetching sessions from MongoDB:', error);
+    return [];
   }
-}
+};
+
+// Função para atualizar uma sessão no MongoDB
+const updateSessionInMongoDB = async (id, update) => {
+  try {
+    await Session.updateOne({ id: id }, update);
+  } catch (error) {
+    console.error('Error updating session in MongoDB:', error);
+  }
+};
+
+// Array para armazenar as sessões
+const sessions = [];
+
+// Restante do seu código...
+
+// Função de inicialização
+const init = function (socket) {
+  getSessionsFromMongoDB().then(savedSessions => {
+    if (savedSessions.length > 0) {
+      if (socket) {
+        savedSessions.forEach((e, i, arr) => {
+          arr[i].ready = false;
+        });
+
+        socket.emit('init', savedSessions);
+      } else {
+        savedSessions.forEach(sess => {
+          createSession(sess.id, sess.description);
+        });
+      }
+    }
+  });
+};
 
 // Restante do seu código...
 
