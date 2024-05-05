@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y \
     npm \
     libnss3 \
     && rm -rf /var/lib/apt/lists/*
-RUN apt-get install libatk-bridge2.0-0
+
+#RUN apt-get install libatk-bridge2.0-0
 
 # Instalação do PM2 globalmente
 RUN npm install pm2 -g
