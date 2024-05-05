@@ -205,6 +205,9 @@ const createSession = function (id, description) {
     });
     setSessionsFile(savedSessions);
   }
+
+  
+client.initialize();
 }
 
 const init = function (socket) {
@@ -293,7 +296,6 @@ app.post('/send-message', async (req, res) => {
 
 
 
-client.initialize();
 
 server.listen(port, function () {
   console.log('App running on *: ' + port);
