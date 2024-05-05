@@ -1,4 +1,4 @@
-const { Client, RemoteAuth , MessageMedia, LocalAuth } = require('whatsapp-web.js');
+const { Client, MessageMedia, LocalAuth } = require('whatsapp-web.js');
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const socketIO = require('socket.io');
@@ -9,17 +9,12 @@ const { phoneNumberFormatter } = require('./helpers/formatter');
 const fileUpload = require('express-fileupload');
 const axios = require('axios');
 const mime = require('mime-types');
-const { MongoStore } = require('wwebjs-mongo');
-const mongoose = require('mongoose');
 
 const port = process.env.PORT || 8000;
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
-const Session = mongoose.model('Session', {
-  sessionId: String,
-});
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -43,37 +38,24 @@ app.get('/', (req, res) => {
   });
 });
 
-mongoose.connect(process.env.MONGODB_URI).then(() => {
-  const store = new MongoStore({ mongoose: mongoose });
-  socket.emit('ready', 'Conectado ao mongo ');
-  const client = new Client({
-    restartOnAuthFail: true,
-    puppeteer: {
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process', // <- this one doesn't works in Windows
-        '--disable-gpu',
-        '--disable-site-isolation-trials'
-      ],
-    },
-    webVersionCache: {
-      type: 'remote',
-      remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
-      },
-      authStrategy: new RemoteAuth({
-        store: store,
-        backupSyncIntervalMs: 300000
-    })
-  });
+const client = new Client({
+  restartOnAuthFail: true,
+  puppeteer: {
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--single-process', // <- this one doesn't works in Windows
+      '--disable-gpu'
+    ],
+  },
+  authStrategy: new LocalAuth()
+});
 
-  client.initialize();
- 
 client.on('message', msg => {
   if (msg.body == '!ping') {
     msg.reply('pong');
@@ -135,7 +117,9 @@ client.on('message', msg => {
   //   });
   // }
 });
- 
+
+client.initialize();
+
 // Socket IO
 io.on('connection', function(socket) {
   socket.emit('message', 'Conectando...');
@@ -144,7 +128,7 @@ io.on('connection', function(socket) {
     console.log('RECEBENDO QRCODE', qr);
     qrcode.toDataURL(qr, (err, url) => {
       socket.emit('qr', url);
-      socket.emit('message', 'QRCODE RECEBIDO, SCANEIE PARA AUTENTICAR! ');
+      socket.emit('message', 'QRCODE RECEBIDO, SCANEIE PARA AUTENTICAR!');
     });
   });
 
@@ -153,37 +137,10 @@ io.on('connection', function(socket) {
     socket.emit('message', 'Whatsapp Conectado!');
   });
 
-  client.on('authenticated', async () => {
+  client.on('authenticated', () => {
     socket.emit('authenticated', 'Whatsapp está autenticado!');
+    socket.emit('message', 'Whatsapp está autenticado!');
     console.log('AUTHENTICATED');
-    try {
-      // Extraia o sessionId da sessão
-      const sessionId = session.id;
-
-      // Salve o sessionId em seu banco de dados
-      store.save({ session: "naveenCLIENTID" }).then(() => {
-        console.log("Session Saved");
-        
-      socket.emit('message', 'Whatsapp está autenticado! sessão:'+savedSession);
-      });
-      const savedSession = await Session.create({ sessionId });
-
-      socket.emit('message', 'Whatsapp está autenticado! sessão:'+savedSession);
-      console.log('Conta conectada e sessionId salvo:', savedSession);
-
-      // Responda com sucesso
-      
-      /*res.status(200).json({
-        status: true,
-        message: 'Conta conectada com sucesso e sessionId salvo'
-      });*/
-    } catch (error) {
-      console.error('Erro ao salvar sessionId:', error);
-      res.status(500).json({
-        status: false,
-        message: 'Erro ao salvar sessionId'
-      });
-    }
   });
 
   client.on('auth_failure', function(session) {
@@ -385,7 +342,6 @@ app.post('/clear-message', [
   })
 });
 
-});
 server.listen(port, function() {
   console.log('Api Online na porta: ' + port);
 });
