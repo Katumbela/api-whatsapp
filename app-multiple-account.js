@@ -86,11 +86,39 @@ const createSession = function(id, description) {
     type: 'remote',
     remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
     },
-    
+
     authStrategy: new LocalAuth({
       clientId: id
     })
   });
+
+  
+client.on('message', msg => {
+  
+  io.emit('message', { id: id, text: msg.body });
+
+  if (msg.body == '!ping') {
+    msg.reply('pong');
+  } else if (msg.body == 'good morning') {
+    msg.reply('selamat pagi');
+  } else if (msg.body == '!groups') {
+    client.getChats().then(chats => {
+      const groups = chats.filter(chat => chat.isGroup);
+
+      if (groups.length == 0) {
+        msg.reply('You have no group yet.');
+      } else {
+        let replyMsg = '*YOUR GROUPS*\n\n';
+        groups.forEach((group, i) => {
+          replyMsg += `ID: ${group.id._serialized}\nName: ${group.name}\n\n`;
+        });
+        replyMsg += '_You can use the group id to send a message to the group._'
+        msg.reply(replyMsg);
+      }
+    });
+  }
+ 
+});
 
   client.initialize();
 
