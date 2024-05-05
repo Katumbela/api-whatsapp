@@ -9,6 +9,8 @@ const { phoneNumberFormatter } = require('./helpers/formatter');
 const fileUpload = require('express-fileupload');
 const axios = require('axios');
 const mime = require('mime-types');
+const { MongoStore } = require('wwebjs-mongo');
+const mongoose = require('mongoose');
 
 const port = process.env.PORT || 8000;
 
@@ -38,28 +40,36 @@ app.get('/', (req, res) => {
   });
 });
 
-const client = new Client({
-  restartOnAuthFail: true,
-  puppeteer: {
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--single-process', // <- this one doesn't works in Windows
-      '--disable-gpu'
-    ],
-  },
-  webVersionCache: {
-    type: 'remote',
-    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+mongoose.connect(process.env.MONGODB_URI).then(() => {
+  const store = new MongoStore({ mongoose: mongoose });
+  const client = new Client({
+    restartOnAuthFail: true,
+    puppeteer: {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process', // <- this one doesn't works in Windows
+        '--disable-gpu'
+      ],
     },
-  authStrategy: new LocalAuth()
-});
+    webVersionCache: {
+      type: 'remote',
+      remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+      },
+      authStrategy: new RemoteAuth({
+        store: store,
+        backupSyncIntervalMs: 300000
+    })
+  });
 
+  client.initialize();
+});
+ 
 client.on('message', msg => {
   if (msg.body == '!ping') {
     msg.reply('pong');
@@ -121,9 +131,7 @@ client.on('message', msg => {
   //   });
   // }
 });
-
-client.initialize();
-
+ 
 // Socket IO
 io.on('connection', function(socket) {
   socket.emit('message', 'Conectando...');

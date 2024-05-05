@@ -25,7 +25,8 @@
     "mongoose": "^8.3.3",
     "qrcode": "^1.4.4",
     "socket.io": "^2.5.0",
-    "whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8"
+    "whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8",
+    "wwebjs-mongo": "^1.1.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
