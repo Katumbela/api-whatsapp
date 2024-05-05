@@ -171,6 +171,7 @@
 
 			socket.on('chats', function(data) {
 				$(`.clients .chatList`).prepend($('<li>').text(data.text));
+					console.log(data.text)
 			});
 
 			socket.on('received_msg', function(data) {
