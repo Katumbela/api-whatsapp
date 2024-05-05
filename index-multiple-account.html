@@ -94,6 +94,9 @@
 				<ul class="logs"></ul>
 			</div>
 		</div>
+		<div class="clients">
+			<ul class="chatList"></ul>
+		</div>
 	</div>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -163,6 +166,10 @@
 
 			socket.on('message', function(data) {
 				$(`.client.client-${data.id} .logs`).prepend($('<li>').text(data.text));
+			});
+
+			socket.on('chats', function(data) {
+				$(`.clients.client-${data.id} .chatList`).prepend($('<li>').text(data.text));
 			});
 
 			socket.on('received_msg', function(data) {
