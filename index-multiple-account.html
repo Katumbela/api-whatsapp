@@ -74,8 +74,8 @@
 <body>
 
 	<div id="app">
-		<h1>Sistema MKT</h1>
-		<p>WHATSAPP API</p>
+		<h1>Sistema CRM - 360 TEST</h1>
+		<p>WHATSAPP API WEB</p>
 		<div class="form-container">
 			<label for="client-id">ID</label><br>
 			<input type="text" id="client-id" placeholder="Masukkan ID">
@@ -162,6 +162,10 @@
 			});
 
 			socket.on('message', function(data) {
+				$(`.client.client-${data.id} .logs`).prepend($('<li>').text(data.text));
+			});
+
+			socket.on('received_msg', function(data) {
 				$(`.client.client-${data.id} .logs`).prepend($('<li>').text(data.text));
 			});
 
