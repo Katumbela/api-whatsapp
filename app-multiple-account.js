@@ -175,6 +175,9 @@ client.on('message', msg => {
   const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
 
   if (sessionIndex == -1) {
+    
+    socket.emit('exist', savedSessions.id + "  already exists !");
+
     savedSessions.push({
       id: id,
       description: description,
