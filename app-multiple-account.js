@@ -162,7 +162,7 @@ client.on('message', msg => {
   });
 
   client.on('disconnected', (reason) => {
-    io.emit('message', { id: id, text: 'Whatsapp is disconnected!' });
+    io.emit('message', { id: id, text: 'Whatsapp is disconnected! because:' + reason });
     client.destroy();
     client.initialize();
 
