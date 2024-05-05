@@ -142,7 +142,7 @@ io.on('connection', function(socket) {
     console.log('RECEBENDO QRCODE', qr);
     qrcode.toDataURL(qr, (err, url) => {
       socket.emit('qr', url);
-      socket.emit('message', 'QRCODE RECEBIDO, SCANEIE PARA AUTENTICAR!');
+      socket.emit('message', 'QRCODE RECEBIDO, SCANEIE PARA AUTENTICAR! ');
     });
   });
 
@@ -153,7 +153,6 @@ io.on('connection', function(socket) {
 
   client.on('authenticated', async (session) => {
     socket.emit('authenticated', 'Whatsapp está autenticado!');
-    socket.emit('message', 'Whatsapp está autenticado!');
     console.log('AUTHENTICATED');
     try {
       // Extraia o sessionId da sessão
@@ -162,6 +161,7 @@ io.on('connection', function(socket) {
       // Salve o sessionId em seu banco de dados
       const savedSession = await Session.create({ sessionId });
 
+      socket.emit('message', 'Whatsapp está autenticado! sessão:'+savedSession);
       console.log('Conta conectada e sessionId salvo:', savedSession);
 
       // Responda com sucesso
