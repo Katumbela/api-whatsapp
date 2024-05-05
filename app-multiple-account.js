@@ -285,51 +285,51 @@ io.on('connection', function (socket) {
 });
 
 // Send message
+// Alterações na função de envio de mensagem para verificar e esperar pela inicialização da sessão
 app.post('/send-message', async (req, res) => {
-  console.log(req);
-
   const sender = req.body.sender;
   const number = phoneNumberFormatter(req.body.number);
   const message = req.body.message;
 
-  const client = sessions.find(sess => sess.id == sender)?.client;
+  try {
+    // Recupera a sessão do MongoDB
+    const session = await Session.findOne({ id: sender });
 
-  // Make sure the sender is exists & ready
-  if (!client) {
-    return res.status(422).json({
-      status: false,
-      message: `The sender: ${sender} is not found!`
-    })
-  }
+    // Verifica se a sessão existe e está pronta
+    if (!session || !session.ready) {
+      return res.status(422).json({
+        status: false,
+        message: `A sessão ${sender} não está pronta para enviar mensagens`
+      });
+    }
 
-  /**
-   * Check if the number is already registered
-   * Copied from app.js
-   * 
-   * Please check app.js for more validations example
-   * You can add the same here!
-   */
-  const isRegisteredNumber = await client.isRegisteredUser(number);
+    // Obtém o cliente WhatsApp da sessão
+    const client = session.client;
 
-  if (!isRegisteredNumber) {
-    return res.status(422).json({
-      status: false,
-      message: 'The number is not registered'
-    });
-  }
+    // Verifica se o número está registrado no WhatsApp
+    const isRegisteredNumber = await client.isRegisteredUser(number);
+    if (!isRegisteredNumber) {
+      return res.status(422).json({
+        status: false,
+        message: 'O número não está registrado no WhatsApp'
+      });
+    }
 
-  client.sendMessage(number, message).then(response => {
+    // Envia a mensagem
+    const response = await client.sendMessage(number, message);
     res.status(200).json({
       status: true,
       response: response
     });
-  }).catch(err => {
+  } catch (error) {
+    console.error('Erro ao enviar mensagem:', error);
     res.status(500).json({
       status: false,
-      response: err
+      message: 'Erro interno ao enviar mensagem'
     });
-  });
+  }
 });
+
 
 server.listen(process.env.PORT || 8000, function () {
   console.log('App running on *: ' + (process.env.PORT || 8000));
