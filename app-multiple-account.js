@@ -1,4 +1,4 @@
-const { Client, MessageMedia, LocalAuth } = require('whatsapp-web.js');
+const { Client, MessageMedia, List , LocalAuth } = require('whatsapp-web.js');
 const express = require('express');
 const socketIO = require('socket.io');
 const qrcode = require('qrcode');
@@ -92,45 +92,57 @@ const createSession = function (id, description) {
     })
   });
 
-
+  
   client.on('message', msg => {
-
     io.emit('message', { id: id, text: msg.body });
-
+  
     if (msg.body == '!ping') {
       msg.reply('pong');
       client.sendMessage(msg.from, 'Esta é uma mensagem automática Reputação 360');
     } else if (msg.body == 'bom dia !') {
-      msg.reply('Bom dia , como está ?!');
+      msg.reply('Bom dia, como está?!');
       client.sendMessage(msg.from, 'Esta é uma mensagem automática Reputação 360');
-
     } else if (msg.body == 'tou bem !') {
-      msg.reply('Que bom que está bem , como posso ajudar ?!');
+      msg.reply('Que bom que está bem, como posso ajudar?!');
       client.sendMessage(msg.from, 'Esta é uma mensagem automática Reputação 360');
-    }
-    else if (msg.body == '!groups') {
+    } else if (msg.body == '!atendimento') {
+      const atendimentoOptions = new List(
+        'Selecione uma opção de atendimento:',
+        'Selecionar',
+        [
+          { title: 'Consulta' },
+          { title: 'Suporte Técnico' },
+          { title: 'Cancelamento de Serviço' },
+          { title: 'Ver Website' }
+        ]
+      );
+      msg.reply(atendimentoOptions);
+    } else if (msg.body == '1') {
+      msg.reply('Você selecionou Consulta. Por favor, forneça mais detalhes sobre sua consulta.');
+    } else if (msg.body == '2') {
+      msg.reply('Você selecionou Suporte Técnico. Como posso ajudá-lo com o suporte técnico?');
+    } else if (msg.body == '3') {
+      msg.reply('Você selecionou Cancelamento de Serviço. Por favor, entre em contato conosco para mais informações sobre o cancelamento.');
+    } else if (msg.body == '4') {
+      msg.reply('Aqui está o link para o website da Reputação 360: https://reputacao360.com');
+    } else if (msg.body == '!groups') {
       client.getChats().then(chats => {
-        //const groups = chats.filter(chat => chat.isGroup);
-
         if (chats.length == 0) {
           msg.reply('You have no group yet.');
         } else {
           let replyMsg = '*YOUR GROUPS*\n\n';
           chats.forEach((group, i) => {
-            replyMsg += group;
-            replyMsg += `ID: ${group.id}\n\nType: ${group.isGroup}LastMsg: ${group.lastMessage}\n\nTime: ${group.timestamp}\n\nName: ${group.name}\n\n`;
+            replyMsg += `ID: ${group.id}\nType: ${group.isGroup}\nLastMsg: ${group.lastMessage}\nTime: ${group.timestamp}\nName: ${group.name}\n\n`;
           });
           replyMsg += '_You can use the group id to send a message to the group._'
           msg.reply(replyMsg);
           client.sendMessage(msg.from, replyMsg);
-
           io.emit('chats', { id: id, text: replyMsg });
         }
       });
     }
-
   });
-
+  
 
   client.on('qr', (qr) => {
     console.log('QR RECEIVED', qr);
@@ -162,7 +174,6 @@ const createSession = function (id, description) {
         });
         replyMsg += '_You can use the group id to send a message to the group._'
         
-
         io.emit('chats', { id: id, text: replyMsg });
       }
     });
