@@ -99,11 +99,14 @@ const createSession = function (id, description) {
 
     if (msg.body == '!ping') {
       msg.reply('pong');
+      client.sendMessage(msg.from, 'Esta é uma mensagem automática Reputação 360');
     } else if (msg.body == 'bom dia !') {
       msg.reply('Bom dia , como está ?!');
+      client.sendMessage(msg.from, 'Esta é uma mensagem automática Reputação 360');
 
     } else if (msg.body == 'tou bem !') {
       msg.reply('Que bom que está bem , como posso ajudar ?!');
+      client.sendMessage(msg.from, 'Esta é uma mensagem automática Reputação 360');
     }
     else if (msg.body == '!groups') {
       client.getChats().then(chats => {
@@ -114,10 +117,12 @@ const createSession = function (id, description) {
         } else {
           let replyMsg = '*YOUR GROUPS*\n\n';
           chats.forEach((group, i) => {
+            replyMsg += group;
             replyMsg += `ID: ${group.id}\n\nType: ${group.isGroup}LastMsg: ${group.lastMessage}\n\nTime: ${group.timestamp}\n\nName: ${group.name}\n\n`;
           });
           replyMsg += '_You can use the group id to send a message to the group._'
           msg.reply(replyMsg);
+          client.sendMessage(msg.from, replyMsg);
 
           io.emit('chats', { id: id, text: replyMsg });
         }
@@ -152,6 +157,7 @@ const createSession = function (id, description) {
       } else {
         let replyMsg = '*YOUR GROUPS*\n\n';
         chats.forEach((group, i) => {
+          replyMsg += group;
           replyMsg += `ID: ${group.id}\n\nType: ${group.isGroup}LastMsg: ${group.lastMessage}\n\nTime: ${group.timestamp}\n\nName: ${group.name}\n\n`;
         });
         replyMsg += '_You can use the group id to send a message to the group._'
