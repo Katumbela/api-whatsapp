@@ -17,6 +17,9 @@ const port = process.env.PORT || 8000;
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+const Session = mongoose.model('Session', {
+  sessionId: String,
+});
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -148,10 +151,31 @@ io.on('connection', function(socket) {
     socket.emit('message', 'Whatsapp Conectado!');
   });
 
-  client.on('authenticated', () => {
+  client.on('authenticated', async (session) => {
     socket.emit('authenticated', 'Whatsapp está autenticado!');
     socket.emit('message', 'Whatsapp está autenticado!');
     console.log('AUTHENTICATED');
+    try {
+      // Extraia o sessionId da sessão
+      const sessionId = session.id;
+
+      // Salve o sessionId em seu banco de dados
+      const savedSession = await Session.create({ sessionId });
+
+      console.log('Conta conectada e sessionId salvo:', savedSession);
+
+      // Responda com sucesso
+      res.status(200).json({
+        status: true,
+        message: 'Conta conectada com sucesso e sessionId salvo'
+      });
+    } catch (error) {
+      console.error('Erro ao salvar sessionId:', error);
+      res.status(500).json({
+        status: false,
+        message: 'Erro ao salvar sessionId'
+      });
+    }
   });
 
   client.on('auth_failure', function(session) {
