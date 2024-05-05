@@ -143,7 +143,8 @@
 					var clientId = session.id;
 					var clientDescription = session.description;
 
-          var clientClass = 'client-' + clientId;
+					var clientClass = 'clients-' + clientId;
+          			var clientClass = 'client-' + clientId;
 					var template = $('.client').first().clone()
 											   .removeClass('hide')
 											   .addClass(clientClass);
@@ -169,7 +170,7 @@
 			});
 
 			socket.on('chats', function(data) {
-				$(`.clients.client-${data.id} .chatList`).prepend($('<li>').text(data.text));
+				$(`.clients .chatList`).prepend($('<li>').text(data.text));
 			});
 
 			socket.on('received_msg', function(data) {
