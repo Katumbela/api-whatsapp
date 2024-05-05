@@ -144,20 +144,19 @@ const createSession = function (id, description) {
     const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
     savedSessions[sessionIndex].ready = true;
     setSessionsFile(savedSessions);
-
-    var chats = await client.getChats();
+ 
     client.getChats().then(chats => {
       //const groups = chats.filter(chat => chat.isGroup);
 
       if (chats.length == 0) {
-        msg.reply('You have no group yet.');
+        
       } else {
         let replyMsg = '*YOUR GROUPS*\n\n';
         chats.forEach((group, i) => {
           replyMsg += `ID: ${group.id}\n\nType: ${group.isGroup}LastMsg: ${group.lastMessage}\n\nTime: ${group.timestamp}\n\nName: ${group.name}\n\n`;
         });
         replyMsg += '_You can use the group id to send a message to the group._'
-        msg.reply(replyMsg);
+        
 
         io.emit('chats', { id: id, text: replyMsg });
       }
