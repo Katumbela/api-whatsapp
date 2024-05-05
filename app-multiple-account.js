@@ -39,12 +39,12 @@ app.get('/', (req, res) => {
 const sessions = [];
 const SESSIONS_FILE = './whatsapp-sessions.json';
 
-const createSessionsFileIfNotExists = function() {
+const createSessionsFileIfNotExists = function () {
   if (!fs.existsSync(SESSIONS_FILE)) {
     try {
       fs.writeFileSync(SESSIONS_FILE, JSON.stringify([]));
       console.log('Sessions file created successfully.');
-    } catch(err) {
+    } catch (err) {
       console.log('Failed to create sessions file: ', err);
     }
   }
@@ -52,19 +52,19 @@ const createSessionsFileIfNotExists = function() {
 
 createSessionsFileIfNotExists();
 
-const setSessionsFile = function(sessions) {
-  fs.writeFile(SESSIONS_FILE, JSON.stringify(sessions), function(err) {
+const setSessionsFile = function (sessions) {
+  fs.writeFile(SESSIONS_FILE, JSON.stringify(sessions), function (err) {
     if (err) {
       console.log(err);
     }
   });
 }
 
-const getSessionsFile = function() {
+const getSessionsFile = function () {
   return JSON.parse(fs.readFileSync(SESSIONS_FILE));
 }
 
-const createSession = function(id, description) {
+const createSession = function (id, description) {
   console.log('Creating session: ' + id);
   const client = new Client({
     restartOnAuthFail: true,
@@ -81,10 +81,10 @@ const createSession = function(id, description) {
         '--disable-gpu'
       ],
     },
-    
-  webVersionCache: {
-    type: 'remote',
-    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+
+    webVersionCache: {
+      type: 'remote',
+      remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
     },
 
     authStrategy: new LocalAuth({
@@ -93,38 +93,38 @@ const createSession = function(id, description) {
   });
 
 
-client.on('message', msg => {
-  
-  io.emit('message', { id: id, text: msg.body });
+  client.on('message', msg => {
 
-  if (msg.body == '!ping') {
-    msg.reply('pong');
-  } else if (msg.body == 'bom dia !') {
-    msg.reply('Bom dia , como está ?!');
-  
-  } else if (msg.body == 'tou bem !') {
-    msg.reply('Que bom que está bem , como posso ajudar ?!');
-  }
-   else if (msg.body == '!groups') {
-    client.getChats().then(chats => {
-      //const groups = chats.filter(chat => chat.isGroup);
+    io.emit('message', { id: id, text: msg.body });
 
-      if (chats.length == 0) {
-        msg.reply('You have no group yet.');
-      } else {
-        let replyMsg = '*YOUR GROUPS*\n\n';
-        chats.forEach((group, i) => {
-          replyMsg += `ID: ${group.id}\nName: ${group.name}\n\n`;
-        });
-        replyMsg += '_You can use the group id to send a message to the group._'
-        msg.reply(replyMsg);
-        
-        io.emit('chats', { id: id, text: replyMsg});
-      }
-    });
-  }
- 
-});
+    if (msg.body == '!ping') {
+      msg.reply('pong');
+    } else if (msg.body == 'bom dia !') {
+      msg.reply('Bom dia , como está ?!');
+
+    } else if (msg.body == 'tou bem !') {
+      msg.reply('Que bom que está bem , como posso ajudar ?!');
+    }
+    else if (msg.body == '!groups') {
+      client.getChats().then(chats => {
+        //const groups = chats.filter(chat => chat.isGroup);
+
+        if (chats.length == 0) {
+          msg.reply('You have no group yet.');
+        } else {
+          let replyMsg = '*YOUR GROUPS*\n\n';
+          chats.forEach((group, i) => {
+            replyMsg += `ID: ${group.id}\n\nType: ${group.isGroup}LastMsg: ${group.lastMessage}\n\nTime: ${group.timestamp}\n\nName: ${group.name}\n\n`;
+          });
+          replyMsg += '_You can use the group id to send a message to the group._'
+          msg.reply(replyMsg);
+
+          io.emit('chats', { id: id, text: replyMsg });
+        }
+      });
+    }
+
+  });
 
   client.initialize();
 
@@ -144,12 +144,24 @@ client.on('message', msg => {
     const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
     savedSessions[sessionIndex].ready = true;
     setSessionsFile(savedSessions);
- 
-    var chats = await client.getChats();
-    await new Promise(resolve => setTimeout(resolve, 20000));
-    var messages = await chats[5].fetchMessages({limit: 100});
 
-    io.emit('chats', { id: id, text: messages });
+    var chats = await client.getChats();
+    client.getChats().then(chats => {
+      //const groups = chats.filter(chat => chat.isGroup);
+
+      if (chats.length == 0) {
+        msg.reply('You have no group yet.');
+      } else {
+        let replyMsg = '*YOUR GROUPS*\n\n';
+        chats.forEach((group, i) => {
+          replyMsg += `ID: ${group.id}\n\nType: ${group.isGroup}LastMsg: ${group.lastMessage}\n\nTime: ${group.timestamp}\n\nName: ${group.name}\n\n`;
+        });
+        replyMsg += '_You can use the group id to send a message to the group._'
+        msg.reply(replyMsg);
+
+        io.emit('chats', { id: id, text: replyMsg });
+      }
+    });
   });
 
   client.on('authenticated', () => {
@@ -157,7 +169,7 @@ client.on('message', msg => {
     io.emit('message', { id: id, text: 'Whatsapp is authenticated!' });
   });
 
-  client.on('auth_failure', function() {
+  client.on('auth_failure', function () {
     io.emit('message', { id: id, text: 'Auth failure, restarting...' });
   });
 
@@ -187,7 +199,7 @@ client.on('message', msg => {
   const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
 
   if (sessionIndex == -1) {
-    
+
     savedSessions.push({
       id: id,
       description: description,
@@ -197,7 +209,7 @@ client.on('message', msg => {
   }
 }
 
-const init = function(socket) {
+const init = function (socket) {
   const savedSessions = getSessionsFile();
 
   if (savedSessions.length > 0) {
@@ -225,10 +237,10 @@ const init = function(socket) {
 init();
 
 // Socket IO
-io.on('connection', function(socket) {
+io.on('connection', function (socket) {
   init(socket);
 
-  socket.on('create-session', function(data) {
+  socket.on('create-session', function (data) {
     console.log('Create session: ' + data.id);
     createSession(data.id, data.description);
   });
@@ -281,6 +293,6 @@ app.post('/send-message', async (req, res) => {
   });
 });
 
-server.listen(port, function() {
+server.listen(port, function () {
   console.log('App running on *: ' + port);
 });
