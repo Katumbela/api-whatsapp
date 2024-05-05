@@ -45,7 +45,6 @@ app.get('/', (req, res) => {
 
 mongoose.connect(process.env.MONGODB_URI).then(() => {
   const store = new MongoStore({ mongoose: mongoose });
-  socket.emit('ready', 'Conectado ao mongo ');
   const client = new Client({
     restartOnAuthFail: true,
     puppeteer: {
@@ -160,6 +159,8 @@ app.post('/connect', async (req, res) => {
 // Socket IO
 io.on('connection', function(socket) {
   socket.emit('message', 'Conectando...');
+
+  socket.emit('message', 'Conectado ao mongo ');
 
   client.on('qr', (qr) => {
     console.log('RECEBENDO QRCODE', qr);
