@@ -294,6 +294,9 @@ app.post('/send-message', async (req, res) => {
   try {
     // Recupera a sessão do MongoDB
     const session = await Session.findOne({ id: sender });
+    
+  const client = session.find(sess => sess.id == sender)?.client;
+
 
     // Verifica se a sessão existe e está pronta
     if (!session || !session.ready) {
@@ -304,7 +307,7 @@ app.post('/send-message', async (req, res) => {
     }
 
     // Obtém o cliente WhatsApp da sessão
-    const client = session.client;
+    //const client = session.client;
 
     // Verifica se o número está registrado no WhatsApp
     /*const isRegisteredNumber = await client.isisRegisteredUser(number);
