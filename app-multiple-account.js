@@ -307,13 +307,13 @@ app.post('/send-message', async (req, res) => {
     const client = session.client;
 
     // Verifica se o número está registrado no WhatsApp
-    const isRegisteredNumber = await client.isRegisteredUser(number);
+    /*const isRegisteredNumber = await client.isisRegisteredUser(number);
     if (!isRegisteredNumber) {
       return res.status(422).json({
         status: false,
         message: 'O número não está registrado no WhatsApp'
       });
-    }
+    }*/
 
     // Envia a mensagem
     const response = await client.sendMessage(number, message);
