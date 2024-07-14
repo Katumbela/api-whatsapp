@@ -60,12 +60,15 @@ const createSession = (id, description) => {
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--single-process', // <- this one doesn't work on Windows
+        '--single-process',
         '--disable-gpu'
       ],
     },
-    authStrategy: new LocalAuth({ clientId: id })
+    authStrategy: new LocalAuth({
+      clientId: id
+    })
   });
+  
 
   client.on('message', msg => {
     io.emit('message', { id: id, text: msg.body });
