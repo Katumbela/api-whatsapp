@@ -2,10 +2,10 @@
   "name": "whatsapp-api",
   "version": "1.0.0",
   "description": "Whatsapp api Web",
-  "main": "app-backup.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node app-backup.js",
-    "start:dev": "nodemon app-backup.js",
+    "start": "node app.js",
+    "start:dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
