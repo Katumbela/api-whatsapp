@@ -1,0 +1,37 @@
+{
+  "name": "whatsapp-api",
+  "version": "1.0.0",
+  "description": "Whatsapp api Web",
+  "main": "app-multiple-account.js",
+  "scripts": {
+    "start": "node app-multiple-account.js",
+    "start:dev": "nodemon app-multiple-account.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "whatsapp-api",
+    "node.js"
+  ],
+  "author": "Comunity",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.0",
+    "express-validator": "^6.9.2",
+    "forever": "^4.0.3",
+    "http": "0.0.1-security",
+    "mime-types": "^2.1.32",
+    "mongoose": "^8.3.3",
+    "pm2": "^5.3.1",
+    "qrcode": "^1.4.4",
+    "socket.io": "^2.5.0",
+    "whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8",
+    "wwebjs-mongo": "^1.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
