@@ -228,16 +228,17 @@ const createSession = async function (id, description) {
   client.initialize();
 }
 
-
 const getSessionsFromMongoDB = async () => {
   try {
-    const sessions = await Session.find({});
+    const sessions = await Session.find({ ready: true });
     return sessions;
   } catch (error) {
     console.error('Error fetching sessions from MongoDB:', error);
     return [];
   }
 };
+
+
 
 // Função para atualizar uma sessão no MongoDB
 const updateSessionInMongoDB = async (id, update) => {
